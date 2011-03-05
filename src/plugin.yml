@@ -1,3 +1,7 @@
 name: Silence
-version: 0.1
+version: 0.2
 main: net.madmanmarkau.Silence.Silence
+commands:
+  silence:
+    description: Silences players.
+    usage: /silence <player> [ON|OFF]
