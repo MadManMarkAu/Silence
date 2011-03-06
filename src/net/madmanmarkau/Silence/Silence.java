@@ -3,7 +3,6 @@ package net.madmanmarkau.Silence;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
-import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
@@ -98,60 +97,53 @@ public class Silence extends JavaPlugin {
 			player = (Player) sender;
 		}
     	
-		if (args.length == 0) { // plugin.Permissions.has(event.getPlayer(), "silence")
-			// Print usage
-			sender.sendMessage(ChatColor.RED + "/silence usage:");
-			sender.sendMessage(ChatColor.RED + "    /silence <player>      - Query player status");
-			sender.sendMessage(ChatColor.RED + "    /silence <player> on   - Silence the player");
-			sender.sendMessage(ChatColor.RED + "    /silence <player> off  - Allow player to talk");
+		if (cmd.getName().compareToIgnoreCase("silence_silence") == 0) {
+			if (args.length == 1) {
+				if (player != null && !this.Permissions.has(player, "silence.query")) return false;
 
-		    return true;
-		} else if (args.length == 1) {
-			if (player != null && !this.Permissions.has(player, "silence.query")) return false;
+				Player target = sender.getServer().getPlayer(args[0]);
 
-			Player target = sender.getServer().getPlayer(args[1]);
-			
-			if (target == null) {
-				sender.sendMessage("&ePlayer " + args[1] + " not found!");
+				if (target == null) {
+					sender.sendMessage("Player " + args[0] + " not found!");
+					return true;
+				}
+
+				SilenceParams userParams = getUserParams(player);
+
+				if (userParams.getSilenced()) {
+					sender.sendMessage("Player " + target.getName() + " DOES NOT have a voice.");
+				} else {
+					sender.sendMessage("Player " + target.getName() + " has a voice.");
+				}
+
 				return true;
-			}
-			
-			SilenceParams userParams = getUserParams(player);
-			
-			if (userParams.getSilenced()) {
-				sender.sendMessage("&ePlayer " + target.getName() + " DOES NOT have a voice.");
-			} else {
-				sender.sendMessage("&ePlayer " + target.getName() + " has a voice.");
-			}
-			
-			return true;
-		} else if (args.length == 2) {
-			if (player != null && !this.Permissions.has(player, "silence.modify")) return false;
+			} else if (args.length == 2) {
+				if (player != null && !this.Permissions.has(player, "silence.modify")) return false;
 
-			Player target = player.getServer().getPlayer(args[1]);
-			
-			if (target == null) {
-				sender.sendMessage("&ePlayer " + args[1] + " not found!");
-				return true;
-			}
-			
-			SilenceParams userParams = getUserParams(target);
-			
-			if (args[2].compareToIgnoreCase("on") == 0) {
-				userParams.setSilenced(true);
-				setUserParams(target, userParams);
+				Player target = sender.getServer().getPlayer(args[0]);
 
-				sender.sendMessage("&ePlayer " + target.getName() + " is now silenced");
-				return true;
-			} else if (args[2].compareToIgnoreCase("off") == 0) {
-				userParams.setSilenced(false);
-				setUserParams(target, userParams);
+				if (target == null) {
+					sender.sendMessage("Player " + args[0] + " not found!");
+					return true;
+				}
 
-				sender.sendMessage("&ePlayer " + target.getName() + " is no longer silenced");
-				return true;
+				SilenceParams userParams = getUserParams(target);
+
+				if (args[1].compareToIgnoreCase("on") == 0) {
+					userParams.setSilenced(true);
+					setUserParams(target, userParams);
+
+					sender.sendMessage("Player " + target.getName() + " is now silenced");
+					return true;
+				} else if (args[1].compareToIgnoreCase("off") == 0) {
+					userParams.setSilenced(false);
+					setUserParams(target, userParams);
+
+					sender.sendMessage("Player " + target.getName() + " is no longer silenced");
+					return true;
+				}
 			}
 		}
-		
 		return false;
     }
 }

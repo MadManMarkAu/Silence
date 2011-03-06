@@ -1,7 +1,11 @@
 name: Silence
-version: 0.2
+version: 0.3
 main: net.madmanmarkau.Silence.Silence
+author: MadManMarkAu
+description: >
+             Silence annoying players.
 commands:
-  silence:
+  silence_silence:
     description: Silences players.
-    usage: /silence <player> [ON|OFF]
+    aliases: silence
+    usage: /<command> <player> [ON|OFF]
