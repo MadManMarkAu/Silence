@@ -1,5 +1,5 @@
 name: Silence
-version: 0.3
+version: 0.4
 main: net.madmanmarkau.Silence.Silence
 author: MadManMarkAu
 description: >
@@ -8,4 +8,4 @@ commands:
   silence_silence:
     description: Silences players.
     aliases: silence
-    usage: /<command> <player> [ON|OFF]
+    usage: /<command> <player> [ON|OFF|<seconds>]

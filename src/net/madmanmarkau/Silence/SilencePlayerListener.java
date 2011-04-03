@@ -16,9 +16,13 @@ public class SilencePlayerListener extends PlayerListener {
 		Player player = event.getPlayer();
 		SilenceParams params = plugin.getUserParams(player);
 		
-		if (params.getSilenced()) {
+		if (!params.updateSilenceTimer()) {
 			player.sendMessage(ChatColor.GOLD + "You may not chat!");
 			event.setCancelled(true);
+		}
+		
+		if (params.getSaveRequired()) {
+			plugin.saveSilenceList();
 		}
 	}
 }
