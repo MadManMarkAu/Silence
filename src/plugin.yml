@@ -1,7 +1,8 @@
 name: Silence
-version: 0.5
+version: 0.6
 main: net.madmanmarkau.Silence.Silence
 author: MadManMarkAu
+license: WTFPL
 description: >
              Silence annoying players.
 commands:
@@ -9,3 +10,14 @@ commands:
     description: Silences players.
     aliases: silence
     usage: /<command> <player> [ON|OFF|<seconds>]
+    permission:
+     - silence.query
+     - silence.modify
+  silence_silenceall:
+    description: Silences all players.
+    aliases: silenceall
+    usage: /<command> [ON|OFF|<seconds>]
+    permission:
+     - silence.queryall
+     - silence.modifyall
+ 

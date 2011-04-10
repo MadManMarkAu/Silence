@@ -35,7 +35,7 @@ public class Silence extends JavaPlugin {
     public PermissionHandler Permissions;
 	public Configuration Config;
     public PluginDescriptionFile pdfFile;
-	
+    
     private SilencePlayerListener playerListener = new SilencePlayerListener(this);
     private String silencePath;
 	private final String silenceFile = "silence.txt";
@@ -43,6 +43,7 @@ public class Silence extends JavaPlugin {
     
     // Store which users have Silence enacted.
     private final HashMap<String, SilenceParams> silenceState = new HashMap<String, SilenceParams>();
+    private final SilenceParams globalSilence = new SilenceParams();
 
 	@Override
 	public void onDisable() {
@@ -180,8 +181,6 @@ public class Silence extends JavaPlugin {
 			this.getServer().getPluginManager().disablePlugin(this);
 		}
 	}
-
-	
 	
 	public SilenceParams getUserParams(Player player) {
 		if (this.silenceState.containsKey(player.getName())) {
@@ -200,6 +199,107 @@ public class Silence extends JavaPlugin {
 			this.silenceState.put(player.getName(), params);
 		}
 		saveSilenceList();
+	}
+
+	public SilenceParams getGlobalParams() {
+		return this.globalSilence;
+	}
+
+	private int decodeTime(String time) {
+		// Parse integer seconds
+
+		try {
+			int silenceTime = Integer.parseInt(time);
+
+			if (silenceTime >= 0) return silenceTime;
+		} catch (Exception e) {}
+
+		try {
+			int dayIndex = time.indexOf("d");
+			int hourIndex = time.indexOf("h");
+			int minuteIndex = time.indexOf("m");
+			int secondIndex = time.indexOf("s");
+			int lastIndex = 0;
+
+			if (dayIndex > -1 || hourIndex > -1 || minuteIndex > -1 || secondIndex > -1) {
+				int timeInSeconds = 0;
+				
+				if (dayIndex > -1) {
+					timeInSeconds += Integer.parseInt(time.substring(lastIndex, dayIndex)) * 60 * 60 * 24;
+					lastIndex = dayIndex + 1;
+				}
+				
+				if (hourIndex > -1) {
+					timeInSeconds += Integer.parseInt(time.substring(lastIndex, hourIndex)) * 60 * 60;
+					lastIndex = hourIndex + 1;
+				}
+				
+				if (minuteIndex > -1) {
+					timeInSeconds += Integer.parseInt(time.substring(lastIndex, minuteIndex)) * 60;
+					lastIndex = minuteIndex + 1;
+				}
+				
+				if (secondIndex > -1) {
+					timeInSeconds += Integer.parseInt(time.substring(lastIndex, secondIndex));
+					lastIndex = secondIndex + 1;
+				}
+	
+				if (timeInSeconds >= 0) return timeInSeconds;
+			}
+		} catch (Exception e) {}
+
+		try {
+			int timeInSeconds = 0;
+			int lastIndex = 0;
+
+			int thisIndex;
+			
+			thisIndex = time.indexOf(":", lastIndex);
+
+			if (thisIndex > -1) {
+				timeInSeconds += Integer.parseInt(time.substring(lastIndex, thisIndex));
+				lastIndex = thisIndex + 1;
+			} else {
+				timeInSeconds += Integer.parseInt(time.substring(lastIndex));
+				if (timeInSeconds >= 0) return timeInSeconds;
+			}
+
+			thisIndex = time.indexOf(":", lastIndex);
+			timeInSeconds *= 60;
+			
+			if (thisIndex > -1) {
+				timeInSeconds += Integer.parseInt(time.substring(lastIndex, thisIndex));
+				lastIndex = thisIndex + 1;
+			} else {
+				timeInSeconds += Integer.parseInt(time.substring(lastIndex));
+				if (timeInSeconds >= 0) return timeInSeconds;
+			}
+
+			thisIndex = time.indexOf(":", lastIndex);
+			timeInSeconds *= 60;
+			
+			if (thisIndex > -1) {
+				timeInSeconds += Integer.parseInt(time.substring(lastIndex, thisIndex));
+				lastIndex = thisIndex + 1;
+			} else {
+				timeInSeconds += Integer.parseInt(time.substring(lastIndex));
+				if (timeInSeconds >= 0) return timeInSeconds;
+			}
+
+			thisIndex = time.indexOf(":", lastIndex);
+			timeInSeconds *= 24;
+			
+			if (thisIndex > -1) {
+				timeInSeconds += Integer.parseInt(time.substring(lastIndex, thisIndex));
+				lastIndex = thisIndex + 1;
+			} else {
+				timeInSeconds += Integer.parseInt(time.substring(lastIndex));
+				if (timeInSeconds >= 0) return timeInSeconds;
+			}
+			
+		} catch (Exception e) {}
+
+		return -1;
 	}
 	
     @Override
@@ -256,14 +356,52 @@ public class Silence extends JavaPlugin {
 					sender.sendMessage("Player " + target.getName() + " is no longer silenced");
 					return true;
 				} else {
-					try {
-						int silenceTime = Integer.parseInt(args[1]);
-						
+					int silenceTime = decodeTime(args[1]);
+					
+					if (silenceTime > 0) {
 						userParams.silencePlayer(silenceTime);
 						setUserParams(target, userParams);
 
 						sender.sendMessage("Player " + target.getName() + " is silenced for " + silenceTime + " seconds.");
-					} catch (Exception e) {}
+					}
+					return true;
+				}
+			}
+		} else if (cmd.getName().compareToIgnoreCase("silence_silenceall") == 0) {
+			if (args.length == 0) {
+				if (player != null && !this.Permissions.has(player, "silence.queryall")) return false;
+
+				if (globalSilence.getSilenced()) {
+					sender.sendMessage("Global silence is on!");
+				} else {
+					sender.sendMessage("Global silence is off!");
+				}
+
+				return true;
+			} else if (args.length == 1) {
+				if (player != null && !this.Permissions.has(player, "silence.modifyall")) return false;
+
+				if (args[0].compareToIgnoreCase("on") == 0) {
+					globalSilence.setSilenced(true);
+
+					sender.sendMessage("Global silence is now on.");
+					log.info("Player " + player.getName() + " enabled global silence.");
+					return true;
+				} else if (args[0].compareToIgnoreCase("off") == 0) {
+					globalSilence.setSilenced(false);
+
+					sender.sendMessage("Global silence is now off.");
+					log.info("Player " + player.getName() + " disabled global silence.");
+					return true;
+				} else {
+					int silenceTime = decodeTime(args[0]);
+					
+					if (silenceTime > 0) {
+						globalSilence.silencePlayer(silenceTime);
+
+						sender.sendMessage("Global silence is on for " + silenceTime + " seconds.");
+						log.info("Player " + player.getName() + " enabled global silence for " + silenceTime + " seconds.");
+					}
 					return true;
 				}
 			}

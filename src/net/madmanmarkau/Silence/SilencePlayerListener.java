@@ -18,7 +18,7 @@ public class SilencePlayerListener extends PlayerListener {
 			Player player = event.getPlayer();
 			SilenceParams params = plugin.getUserParams(player);
 			
-			if (!params.updateSilenceTimer()) {
+			if (!params.updateSilenceTimer() || (!plugin.getGlobalParams().updateSilenceTimer() && !plugin.Permissions.has(event.getPlayer(), "silence.silenceall.ignore"))) {
 				player.sendMessage(ChatColor.GOLD + "You may not chat!");
 				event.setCancelled(true);
 			}
@@ -34,7 +34,7 @@ public class SilencePlayerListener extends PlayerListener {
 			Player player = event.getPlayer();
 			SilenceParams params = plugin.getUserParams(player);
 			
-			if (!params.updateSilenceTimer()) {
+			if (!params.updateSilenceTimer() || (!plugin.getGlobalParams().updateSilenceTimer() && !plugin.Permissions.has(event.getPlayer(), "silence.silenceall.ignore"))) {
 				player.sendMessage(ChatColor.GOLD + "You may not chat!");
 				event.setCancelled(true);
 			}
