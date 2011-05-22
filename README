@@ -1,0 +1,12 @@
+Branch of MadManMarkAu's Silence plugin
+  Based off version 0.6.1
+
+CHANGES:
+
+1. now works without either Permissions or FakePermissions; if not found, it just checks if the user is an Operator. Only Operators can silence anyone, but anyone can query current state. Also Operators can chat even when everyone else is silenced. [Credit to captainawesome7 for similar run-time check for Permissions in his SimpleAdmin plugin.]
+
+2. if a user doesn't have permission for a command, it fails silently rather than spouting proper command usage.
+
+3. added a command "ignore" that allows each player to individually ignore specific players. Same options as basic silence command.
+
+4. now allows the server console user to silence or ignore players
