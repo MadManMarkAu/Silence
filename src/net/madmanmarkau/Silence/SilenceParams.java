@@ -79,6 +79,7 @@ public class SilenceParams {
 		this.saveRequired = true;
 	}
 	
+	// returns true if user not/no longer silenced
 	public boolean updateSilenceTimer() {
 		if (this.silenced) {
 			//log.info("Silenced!");
