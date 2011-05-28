@@ -1,10 +1,10 @@
 name: Silence
-version: 0.6.1
+version: 0.7
 main: net.madmanmarkau.Silence.Silence
-author: MadManMarkAu
+author: MadManMarkAu, filbert66
 license: WTFPL
 description: >
-             Silence annoying players.
+             Silence/ignore annoying players.
 commands:
   silence_silence:
     description: Silences players.
@@ -20,4 +20,9 @@ commands:
     permission:
      - silence.queryall
      - silence.modifyall
- 
+  silence_ignore:
+    description: Ignore specific player's chats, or query your ignore list.
+    aliases: ignore
+    usage: /<command> [<player> [ON|OFF|<seconds>]]
+    permission:
+      - silence.ignore
