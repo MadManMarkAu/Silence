@@ -2,49 +2,52 @@ package net.madmanmarkau.Silence;
 
 import java.util.Date;
 
-public class IgnoreParams extends SilenceParams {
-	String ignoreName;
+public class IgnoreParams extends DataEntry {
+	private String ignoredPlayer;
+	private String ignoringPlayer;
 
-	// All constructors require a name
-	public IgnoreParams(String name) {
-		super ();
-		this.ignoreName = name;
+	public IgnoreParams(String ignoredPlayer, String ignoringPlayer) {
+		super();
+		this.setIgnoredPlayer(ignoredPlayer);
+		this.setIgnoringPlayer(ignoringPlayer);
+		super.setSaveRequired(true);
+	}
+	
+	public IgnoreParams(String ignoredPlayer, String ignoringPlayer, boolean active) {
+		super(active);
+		this.setIgnoredPlayer(ignoredPlayer);
+		this.setIgnoringPlayer(ignoringPlayer);
+		super.setSaveRequired(true);
+	}
+	
+	public IgnoreParams(String ignoredPlayer, String ignoringPlayer, Date activeStart, int activeTime) {
+		super(activeStart, activeTime);
+		this.setIgnoredPlayer(ignoredPlayer);
+		this.setIgnoringPlayer(ignoringPlayer);
+		super.setSaveRequired(true);
+	}
+	
+	public IgnoreParams(String ignoredPlayer, String ignoringPlayer, int activeTime) {
+		super(activeTime);
+		this.setIgnoredPlayer(ignoredPlayer);
+		this.setIgnoringPlayer(ignoringPlayer);
+		super.setSaveRequired(true);
 	}
 
-	public IgnoreParams(String name, boolean silenced) {
-		super (silenced);
-		this.ignoreName = name;
+	public void setIgnoredPlayer(String ignoredPlayer) {
+		this.ignoredPlayer = ignoredPlayer;
 	}
 
-	public IgnoreParams(String name, Date silenceStart, int silenceTime) {
-		super (silenceStart, silenceTime);
-		this.ignoreName = name;
+	public String getIgnoredPlayer() {
+		return ignoredPlayer;
 	}
 
-	public IgnoreParams(String name, int silenceTime) {
-		super (silenceTime);
-		this.ignoreName = name;
+	public void setIgnoringPlayer(String ignoringPlayer) {
+		this.ignoringPlayer = ignoringPlayer;
 	}
 
-	public String getName () {
-		return this.ignoreName;
+	public String getIgnoringPlayer() {
+		return ignoringPlayer;
 	}
-
-	public boolean isIgnored (String username) {
-		if (username.compareTo (this.ignoreName) == 0)
-			return !this.updateSilenceTimer();
-		else
-			return false;
-	}
-
-	// Since we have a name upon creation, don't need a name in these.
-	public void ignorePlayer(int silenceTime) {
-		this.silencePlayer (silenceTime);
-	}
-
-	public void unignorePlayer() {
-		this.unsilencePlayer ();
-	}
-
 }
 

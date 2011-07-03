@@ -22,7 +22,7 @@ public class DataManager {
 
 	// Store which users have Silence enacted.
 	private static final HashMap<String, SilenceParams> silenceState = new HashMap<String, SilenceParams>();
-	private static final SilenceParams globalSilence = new SilenceParams();
+	private static final SilenceParams globalSilence = new SilenceParams("");
 	private static final HashMap<String, ArrayList<IgnoreParams>> ignoreState = new HashMap<String, ArrayList<IgnoreParams>>(); // Store which users and whom they are ignoring. Key is the ignoring user.
 
 	public static void initialize(Plugin plugin, String dataPath) {
@@ -86,7 +86,7 @@ public class DataManager {
 							silenceStart = Long.parseLong(values[1]);
 							silenceTime = Integer.parseInt(values[2]);
 
-							silenceState.put(playerName, new SilenceParams(new Date(silenceStart), silenceTime));
+							silenceState.put(playerName, new SilenceParams(playerName, new Date(silenceStart), silenceTime));
 						}
 					} catch (Exception e) {
 						// This entry failed. Ignore and continue.
@@ -128,8 +128,8 @@ public class DataManager {
 			for (Entry<String, SilenceParams> entry : silenceState.entrySet()) {
 				SilenceParams silence = entry.getValue();
 
-				if (silence.silenced) {
-					writer.write(entry.getKey() + ";" + silence.silenceStart.getTime() + ";" + silence.silenceTime);
+				if (silence.updateActiveTimer()) {
+					writer.write(entry.getKey() + ";" + silence.getActiveStart().getTime() + ";" + silence.getActiveTime());
 					writer.newLine();
 				}
 			}
@@ -177,48 +177,36 @@ public class DataManager {
 			BufferedReader reader = new BufferedReader(fstream);
 
 			String line = reader.readLine().trim();
-			String ignorer = null;
 
 			while (line != null) {
 				if (!line.startsWith("#")) {
+					String[] values = line.split(";");
 
-					if (line.endsWith(":")) {
-						String[] names = line.split(":");
+					try {
+						if (values.length == 4) {
+							String ignorer;
+							String playerName;
+							long silenceStart;
+							int silenceTime;
 
-						if (names.length != 1)
-							Messaging.logWarning("Malformed line loading ignores: " + line, plugin);
-						ignorer = names[0];
-					} else {
-						String[] values = line.split(";");
+							ignorer = values[0];
+							playerName = values[1];
+							silenceStart = Long.parseLong(values[2]);
+							silenceTime = Integer.parseInt(values[3]);
 
-						try {
-							if (values.length > 1 && ignorer == null)
-								Messaging.logWarning("Expected '<name>:' loading ignores: " + line, plugin);
-							else if (values.length == 3)
-							{
-								String playerName;
-								long silenceStart;
-								int silenceTime;
+							IgnoreParams ignoring = new IgnoreParams(ignorer, playerName, new Date(silenceStart), silenceTime);
 
-								playerName = values[0];
-								silenceStart = Long.parseLong(values[1]);
-								silenceTime = Integer.parseInt(values[2]);
+							if ( !ignoreState.containsKey (ignorer)) { // haven't ignored anyone up to now
+								ArrayList<IgnoreParams> ignoreList = new ArrayList<IgnoreParams>(1);
 
-								IgnoreParams ignoring = new IgnoreParams(playerName, new Date(silenceStart), silenceTime);
-
-								if ( !ignoreState.containsKey (ignorer)) { // haven't ignored anyone up to now
-									ArrayList<IgnoreParams> ignoreList = new ArrayList<IgnoreParams>(1);
-
-									ignoreState.put(ignorer, ignoreList);
-								}
-								ignoreState.get(ignorer).add(ignoring); // add this IgnoreParams
+								ignoreState.put(ignorer, ignoreList);
 							}
-							else if (values.length != 1)
-								Messaging.logWarning("Malformed line loading ignores: " + line, plugin);
-
-						} catch (Exception e) {
-							// This entry failed. Ignore and continue.
+							ignoreState.get(ignorer).add(ignoring); // add this IgnoreParams
+						} else {
+							Messaging.logWarning("Malformed line loading ignores: " + line, plugin);
 						}
+					} catch (Exception e) {
+						// This entry failed. Ignore and continue.
 					}
 				}
 
@@ -255,16 +243,12 @@ public class DataManager {
 			for (Entry<String, ArrayList<IgnoreParams>> entry : ignoreState.entrySet()) {
 				ArrayList<IgnoreParams> ignoreList = entry.getValue();
 
-				writer.write (entry.getKey() + ":");
-				writer.newLine();
-
 				for (IgnoreParams ignore : ignoreList) {
-					if (ignore.silenced) {
-						writer.write(ignore.ignoreName + ";" + ignore.silenceStart.getTime() + ";" + ignore.silenceTime);
+					if (ignore.getActive()) {
+						writer.write(ignore.getIgnoringPlayer() + ";" + ignore.getIgnoredPlayer() + ";" + ignore.getActiveStart().getTime() + ";" + ignore.getActiveTime());
 						writer.newLine();
 					}
 				}
-				writer.newLine(); // finished this ignorer
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -295,7 +279,7 @@ public class DataManager {
 			ArrayList<IgnoreParams> ignoreList = ignoreState.get(destName);
 
 			for (int i=0; i< ignoreList.size(); i++) {
-				if (ignoreList.get(i).isIgnored (chatter))
+				if (ignoreList.get(i).getIgnoringPlayer().compareToIgnoreCase(chatter) == 0)
 					return i+1;
 			}
 		}
@@ -317,7 +301,7 @@ public class DataManager {
 			ignorerName = "CONSOLE";
 		int index = isUserIgnoring(ignorerName, ignored.getName()) - 1;
 
-		if (params.getSilenced() == false && (index >= 0)) {
+		if (params.getActive() == false && (index >= 0)) {
 			// Ignore is being reset/removed. Delete it from memory.
 			ignoreState.get(ignorerName).remove(index);
 		} else {
@@ -347,7 +331,7 @@ public class DataManager {
 		if (player != null && silenceState.containsKey(player.getName())) {
 			return silenceState.get(player.getName());
 		}
-		return new SilenceParams();
+		return new SilenceParams(player.getName());
 	}
 
 	/**
@@ -356,7 +340,7 @@ public class DataManager {
 	 * @param params Silence parameters to apply to specified player.
 	 */
 	public static void setSilenceParams(Player player, SilenceParams params) {
-		if (player != null && params.getSilenced() == false && getSilenceParams(player).getSilenced() == true) {
+		if (player != null && params.getActive() == false && getSilenceParams(player).getActive() == true) {
 			// Player silence is being removed.
 			silenceState.remove(player.getName());
 		} else {

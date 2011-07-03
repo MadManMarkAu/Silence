@@ -1,6 +1,7 @@
 package net.madmanmarkau.Silence;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
@@ -31,7 +32,6 @@ public class Silence extends JavaPlugin {
 	private boolean usePermissions;
 
 	private SilencePlayerListener playerListener = new SilencePlayerListener(this);
-	//final String ServerName = "SERVER";
 
 	@Override
 	public void onDisable() {
@@ -137,7 +137,7 @@ public class Silence extends JavaPlugin {
 
 				SilenceParams userParams = DataManager.getSilenceParams(player);
 
-				if (userParams.getSilenced()) {
+				if (userParams.getActive()) {
 					Messaging.sendSuccess(sender, "Player " + target.getName() + " DOES NOT have a voice.");
 				} else {
 					Messaging.sendSuccess(sender, "Player " + target.getName() + " has a voice.");
@@ -157,13 +157,13 @@ public class Silence extends JavaPlugin {
 				SilenceParams userParams = DataManager.getSilenceParams(target);
 
 				if (args[1].compareToIgnoreCase("on") == 0) {
-					userParams.setSilenced(true);
+					userParams.setActive(true);
 					DataManager.setSilenceParams(target, userParams);
 
 					Messaging.sendSuccess(sender, "Player " + target.getName() + " is now silenced");
 					return true;
 				} else if (args[1].compareToIgnoreCase("off") == 0) {
-					userParams.setSilenced(false);
+					userParams.setActive(false);
 					DataManager.setSilenceParams(target, userParams);
 
 					Messaging.sendSuccess(sender, "Player " + target.getName() + " is no longer silenced");
@@ -172,7 +172,9 @@ public class Silence extends JavaPlugin {
 					int silenceTime = Util.decodeTime(args[1]);
 
 					if (silenceTime > 0) {
-						userParams.silencePlayer(silenceTime);
+						userParams.setActive(true);
+						userParams.setActiveStart(new Date());
+						userParams.setActiveTime(silenceTime);
 						DataManager.setSilenceParams(target, userParams);
 
 						Messaging.sendSuccess(sender, "Player " + target.getName() + " is silenced for " + silenceTime + " seconds.");
@@ -184,7 +186,7 @@ public class Silence extends JavaPlugin {
 			if (args.length == 0) {
 				if (!isOpAllowed(player, "silence.queryall", true, true)) return true;
 
-				if (DataManager.getGlobalSilenceParams().getSilenced()) {
+				if (DataManager.getGlobalSilenceParams().getActive()) {
 					Messaging.sendSuccess(sender, "Global silence is on!");
 				} else {
 					Messaging.sendSuccess(sender, "Global silence is off!");
@@ -195,13 +197,13 @@ public class Silence extends JavaPlugin {
 				if (!isOpAllowed(player, "silence.modifyall", true, true)) return true;
 
 				if (args[0].compareToIgnoreCase("on") == 0) {
-					DataManager.getGlobalSilenceParams().setSilenced(true);
+					DataManager.getGlobalSilenceParams().setActive(true);
 
 					Messaging.sendSuccess(sender, "Global silence is now on.");
 					Messaging.logInfo((player == null ? "CONSOLE" : "Player " + player.getName()) + " enabled global silence.", this);
 					return true;
 				} else if (args[0].compareToIgnoreCase("off") == 0) {
-					DataManager.getGlobalSilenceParams().setSilenced(false);
+					DataManager.getGlobalSilenceParams().setActive(false);
 
 					Messaging.sendSuccess(sender, "Global silence is now off.");
 					Messaging.logInfo((player == null ? "CONSOLE" : "Player " + player.getName()) + " disabled global silence.", this);
@@ -210,7 +212,9 @@ public class Silence extends JavaPlugin {
 					int silenceTime = Util.decodeTime(args[0]);
 
 					if (silenceTime > 0) {
-						DataManager.getGlobalSilenceParams().silencePlayer(silenceTime);
+						DataManager.getGlobalSilenceParams().setActive(true);
+						DataManager.getGlobalSilenceParams().setActiveStart(new Date());
+						DataManager.getGlobalSilenceParams().setActiveTime(silenceTime);
 
 						Messaging.sendSuccess(sender, "Global silence is on for " + silenceTime + " seconds.");
 						Messaging.logInfo((player == null ? "CONSOLE" : "Player " + player.getName()) + " enabled global silence for " + silenceTime + " seconds.", this);
@@ -228,7 +232,7 @@ public class Silence extends JavaPlugin {
 				// Obtain a list of ignored players.
 				if (targets != null) {
 					for (int i=0; i < targets.size(); i++) {
-						ignoredPlayers.add(targets.get(i).getName());
+						ignoredPlayers.add(targets.get(i).getIgnoredPlayer());
 					}
 				}
 
@@ -258,10 +262,10 @@ public class Silence extends JavaPlugin {
 					return true;
 				}
 
-				IgnoreParams userParams = new IgnoreParams(target.getName());
+				IgnoreParams userParams = new IgnoreParams(player.getName(), target.getName());
 
 				if (args[1].compareToIgnoreCase("on") == 0) {
-					userParams.setSilenced(true);
+					userParams.setActive(true);
 					DataManager.setIgnoreParams(player, target, userParams);
 
 					Messaging.sendSuccess(sender, "Player " + target.getName() + " is now ignored.");
@@ -269,7 +273,7 @@ public class Silence extends JavaPlugin {
 
 					return true;
 				} else if (args[1].compareToIgnoreCase("off") == 0) {
-					userParams.setSilenced(false);
+					userParams.setActive(false);
 					DataManager.setIgnoreParams(player, target, userParams);
 
 					Messaging.sendSuccess(sender, "Player " + target.getName() + " is no longer ignored.");
@@ -280,7 +284,9 @@ public class Silence extends JavaPlugin {
 					int silenceTime = Util.decodeTime(args[1]);
 
 					if (silenceTime > 0) {
-						userParams.ignorePlayer(silenceTime);
+						userParams.setActive(true);
+						userParams.setActiveStart(new Date());
+						userParams.setActiveTime(silenceTime);
 						DataManager.setIgnoreParams(player, target, userParams);
 
 						Messaging.sendSuccess(sender, "Player " + target.getName() + " is now ignored for " + silenceTime + "seconds.");
