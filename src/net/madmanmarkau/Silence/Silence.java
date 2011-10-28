@@ -3,17 +3,15 @@ package net.madmanmarkau.Silence;
 import java.util.ArrayList;
 import java.util.Date;
 
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.util.config.Configuration;
 import org.bukkit.event.Event;
 
 import com.nijiko.permissions.PermissionHandler;
-import com.nijikokun.bukkit.Permissions.Permissions;
 
 // Permissions:
 // bool Permissions.has(player, "foo.bar"))
@@ -27,7 +25,7 @@ import com.nijikokun.bukkit.Permissions.Permissions;
  */
 public class Silence extends JavaPlugin {
 	public PermissionHandler Permissions;
-	public Configuration Config;
+	public YamlConfiguration Config;
 
 	private boolean usePermissions;
 
@@ -44,32 +42,14 @@ public class Silence extends JavaPlugin {
 	public void onEnable() {
 		DataManager.initialize(this, this.getDataFolder().getAbsolutePath());
 
-		setupPermissions();
+		SilencePermissions.initialize(this);
+
 		if (DataManager.loadSilenceList() && DataManager.loadIgnoreList()) {
 			registerEvents(); 
 			registerEvents();
 			Messaging.logInfo(this.getDescription().getName() + " version " + this.getDescription().getVersion() + " loaded", this);
 		} else {
 			this.getServer().getPluginManager().disablePlugin(this);
-		}
-	}
-
-	public void setupPermissions() {
-		Plugin perm = this.getServer().getPluginManager().getPlugin("Permissions");
-
-		//PSW: copied code from SimpleAdmin plugin to dynamically query for Permissions, and operate without.
-		if (this.Permissions == null) {
-			if (perm!= null) {
-				this.usePermissions = true;
-				this.getServer().getPluginManager().enablePlugin(perm);
-				this.Permissions = ((Permissions) perm).getHandler();
-				Messaging.logInfo("Permissions system detected.", this);
-			}
-			else {
-				Messaging.logInfo("Permissions system not detected. Falling back to operator access.", this);
-				this.getServer().getPluginManager().disablePlugin(this);
-				this.usePermissions = false; 
-			}
 		}
 	}
 

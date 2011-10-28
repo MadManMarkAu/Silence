@@ -1,5 +1,5 @@
 name: Silence
-version: 0.8
+version: 0.9
 main: net.madmanmarkau.Silence.Silence
 author: MadManMarkAu, filbert66
 license: WTFPL
@@ -26,3 +26,14 @@ commands:
     usage: /<command> [<player> [ON|OFF|<seconds>]]
     permission:
       - silence.ignore
+
+permissions:
+    silence.*:
+        description: Gives access to all permissions.
+        default: false
+        children:
+            silence.query: true
+            silence.modify: true
+            silence.queryall: true
+            silence.modifyall: true
+            silence.ignore: true
