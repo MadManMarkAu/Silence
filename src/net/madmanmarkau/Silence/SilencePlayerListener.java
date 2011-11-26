@@ -19,7 +19,7 @@ public class SilencePlayerListener extends PlayerListener {
 			Player player = event.getPlayer();
 			SilenceParams params = DataManager.getSilenceParams(player);
 			
-			if (params.updateActiveTimer() || (DataManager.getGlobalSilenceParams().updateActiveTimer() && !plugin.isOpAllowed(player, "silence.silenceall.ignore", true, true))) {
+			if (params.updateActiveTimer() || (DataManager.getGlobalSilenceParams().updateActiveTimer() && !SilencePermissions.has(player, "silence.silenceall.ignore"))) {
 				Messaging.sendError(player, "You may not chat!");
 				event.setCancelled(true);
 			} else {
@@ -52,7 +52,7 @@ public class SilencePlayerListener extends PlayerListener {
 			Player player = event.getPlayer();
 			SilenceParams params = DataManager.getSilenceParams(player);
 			
-			if (!params.updateActiveTimer() || (DataManager.getGlobalSilenceParams().updateActiveTimer() && !plugin.isOpAllowed(player, "silence.silenceall.ignore", true, true))) {
+			if (!params.updateActiveTimer() || (DataManager.getGlobalSilenceParams().updateActiveTimer() && !SilencePermissions.has(player, "silence.silenceall.ignore"))) {
 				Messaging.sendError(player, "You may not chat!");
 				event.setCancelled(true);
 			} else {

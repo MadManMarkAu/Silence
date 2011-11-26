@@ -1,28 +1,19 @@
 name: Silence
-version: 0.9
+version: 0.9.2
 main: net.madmanmarkau.Silence.Silence
 author: MadManMarkAu, filbert66
 license: WTFPL
 description: >
              Silence/ignore annoying players.
 commands:
-  silence_silence:
+  silence:
     description: Silences players.
-    aliases: silence
     usage: /<command> <player> [ON|OFF|<seconds>]
-    permission:
-     - silence.query
-     - silence.modify
-  silence_silenceall:
+  silenceall:
     description: Silences all players.
-    aliases: silenceall
     usage: /<command> [ON|OFF|<seconds>]
-    permission:
-     - silence.queryall
-     - silence.modifyall
-  silence_ignore:
+  ignore:
     description: Ignore specific player's chats, or query your ignore list.
-    aliases: ignore
     usage: /<command> [<player> [ON|OFF|<seconds>]]
     permission:
       - silence.ignore
@@ -37,3 +28,23 @@ permissions:
             silence.queryall: true
             silence.modifyall: true
             silence.ignore: true
+            silence.silenceall.ignore: true
+    silence.query:
+        description: Allow user to query silence status of players.
+        default: false
+    silence.modify:
+        description: Allow user to set/remove a silencing.
+        default: false
+    silence.queryall:
+        description: Allow user to query silence status of global silencing.
+        default: false
+    silence.modifyall:
+        description: Allow user to set/remove a global silencing.
+        default: false
+    silence.silenceall.ignore:
+        description: User may ignore the global silencing and speak.ing.
+        default: false
+    silence.ignore:
+        description: Allow user to use the /ignore command.
+        default: true
+            

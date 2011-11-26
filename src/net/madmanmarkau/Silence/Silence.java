@@ -11,8 +11,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 
-import com.nijiko.permissions.PermissionHandler;
-
 // Permissions:
 // bool Permissions.has(player, "foo.bar"))
 
@@ -24,10 +22,7 @@ import com.nijiko.permissions.PermissionHandler;
  * @author MadManMarkAu, PSW(filbert66)
  */
 public class Silence extends JavaPlugin {
-	public PermissionHandler Permissions;
 	public YamlConfiguration Config;
-
-	private boolean usePermissions;
 
 	private SilencePlayerListener playerListener = new SilencePlayerListener(this);
 
@@ -59,42 +54,6 @@ public class Silence extends JavaPlugin {
 		pm.registerEvent(Event.Type.PLAYER_COMMAND_PREPROCESS, this.playerListener, Event.Priority.Highest, this);
 	}
 
-	/**
-	 * Determines if Permissions system is active, or if permissions should be based on isOp();
-	 * @return True if Permissions is enabled, otherwise false.
-	 */
-	public boolean ifUsePermissions () {
-		return this.usePermissions;
-	}
-
-	/**
-	 * Check if a given permission is allowed. If Permissions system is not active, default to isOp()
-	 * @param player Player to query permission for.
-	 * @param permission Permission to query for.
-	 * @param onlyOps If Permissions system is not active, only operators are allowed to perform this function.
-	 * @param allowConsole True to allow NULL players (console) permission.
-	 * @return True if operation is allowed, otherwise false.
-	 */
-	public boolean isOpAllowed(Player player, String permission, boolean onlyOps, boolean allowConsole) {
-		if (player != null) {
-			if (this.usePermissions) {
-				return this.Permissions.has(player, permission);
-			} else {
-				if (onlyOps) {
-					if (player.isOp()) {
-						return true;
-					} else {
-						return false;
-					}
-				} else {
-					return true;
-				}
-			}
-		} else {
-			return allowConsole;
-		}
-	}
-
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args)
 	{
@@ -104,9 +63,9 @@ public class Silence extends JavaPlugin {
 			player = (Player) sender;
 		}
 
-		if (cmd.getName().compareToIgnoreCase("silence_silence") == 0) {
+		if (cmd.getName().compareToIgnoreCase("silence") == 0) {
 			if (args.length == 1) {
-				if (!isOpAllowed(player, "silence.query", true, true)) return true;
+				if (!SilencePermissions.has(player, "silence.query")) return true;
 
 				Player target = sender.getServer().getPlayer(args[0]);
 
@@ -125,7 +84,7 @@ public class Silence extends JavaPlugin {
 
 				return true;
 			} else if (args.length == 2) {
-				if (!isOpAllowed(player, "silence.modify", true, true)) return true;
+				if (!SilencePermissions.has(player, "silence.modify")) return true;
 
 				Player target = sender.getServer().getPlayer(args[0]);
 
@@ -162,9 +121,9 @@ public class Silence extends JavaPlugin {
 					return true;
 				}
 			}
-		} else if (cmd.getName().compareToIgnoreCase("silence_silenceall") == 0) {
+		} else if (cmd.getName().compareToIgnoreCase("silenceall") == 0) {
 			if (args.length == 0) {
-				if (!isOpAllowed(player, "silence.queryall", true, true)) return true;
+				if (!SilencePermissions.has(player, "silence.queryall")) return true;
 
 				if (DataManager.getGlobalSilenceParams().getActive()) {
 					Messaging.sendSuccess(sender, "Global silence is on!");
@@ -174,7 +133,7 @@ public class Silence extends JavaPlugin {
 
 				return true;
 			} else if (args.length == 1) {
-				if (!isOpAllowed(player, "silence.modifyall", true, true)) return true;
+				if (!SilencePermissions.has(player, "silence.modifyall")) return true;
 
 				if (args[0].compareToIgnoreCase("on") == 0) {
 					DataManager.getGlobalSilenceParams().setActive(true);
@@ -202,8 +161,8 @@ public class Silence extends JavaPlugin {
 					return true;
 				}
 			}
-		} else if (cmd.getName().compareToIgnoreCase("silence_ignore") == 0) {
-			if (!isOpAllowed(player, "silence.ignore", false, false)) return true;
+		} else if (cmd.getName().compareToIgnoreCase("ignore") == 0) {
+			if (player != null && !SilencePermissions.has(player, "silence.ignore")) return true;
 
 			if (args.length == 0) { // Retrieve a list of ignored players
 				ArrayList<IgnoreParams> targets = DataManager.getIgnoreParams(player);
@@ -269,7 +228,7 @@ public class Silence extends JavaPlugin {
 						userParams.setActiveTime(silenceTime);
 						DataManager.setIgnoreParams(player, target, userParams);
 
-						Messaging.sendSuccess(sender, "Player " + target.getName() + " is now ignored for " + silenceTime + "seconds.");
+						Messaging.sendSuccess(sender, "Player " + target.getName() + " is now ignored for " + silenceTime + " seconds.");
 						Messaging.sendSuccess(target, "Player " + player.getName() + " is now ignoring you for " + silenceTime + " seconds.");
 
 					}
